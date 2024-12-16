@@ -18,6 +18,9 @@ jobs:
           # Check out the pull request's head branch
           repository: ${{ github.event.issue.pull_request.head.repo.full_name }}
           ref: ${{ github.event.issue.pull_request.head.ref }}
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
 
       # If your `style` and `quality` commands require dependencies or setup,
       # install them here. For example:

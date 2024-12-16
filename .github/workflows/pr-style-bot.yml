@@ -12,12 +12,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Extract PR details
+        id: pr_info
+        uses: actions/github-script@v6
+        with:
+            script: |
+                const prNumber = context.payload.issue.number;
+                const { data: pr } = await github.pulls.get({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: prNumber
+                });
+                return { prNumber: prNumber, headRef: pr.head.ref, cloneUrl: pr.head.repo.clone_url };
+
       - name: Check out PR branch
         uses: actions/checkout@v3
         with:
-          # Check out the pull request's head branch
-          repository: ${{ github.event.issue.pull_request.head.repo.full_name }}
-          ref: ${{ github.event.issue.pull_request.head.ref }}
+          repository: ${{ github.repository }}
+          ref: ${{ steps.pr_info.outputs.headRef }}
       
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -43,7 +55,7 @@ jobs:
             git add .
             git commit -m "Apply style fixes"
             # Push back to the PR branch
-            git push origin HEAD:${{ github.event.issue.pull_request.head.ref }}
+            git push origin HEAD:${{ steps.pr_info.outputs.headRef }}
           else
             echo "No changes to commit."
           fi

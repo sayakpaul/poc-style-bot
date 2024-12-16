@@ -1,16 +1,10 @@
 import torch
-
 from diffusers import HunyuanVideoPipeline, HunyuanVideoTransformer3DModel
 from diffusers.utils import export_to_video
 
-
 model_id = "tencent/HunyuanVideo"
-transformer = HunyuanVideoTransformer3DModel.from_pretrained(
-    model_id, subfolder="transformer", torch_dtype=torch.bfloat16, revision="refs/pr/18"
-)
-pipe = HunyuanVideoPipeline.from_pretrained(
-    model_id, transformer=transformer, torch_dtype=torch.float16, revision="refs/pr/18"
-)
+transformer = HunyuanVideoTransformer3DModel.from_pretrained(model_id, subfolder="transformer", torch_dtype=torch.bfloat16, revision="refs/pr/18")
+pipe = HunyuanVideoPipeline.from_pretrained(model_id, transformer=transformer, torch_dtype=torch.float16, revision="refs/pr/18")
 pipe.vae.enable_tiling()
 pipe.to("cuda")
 

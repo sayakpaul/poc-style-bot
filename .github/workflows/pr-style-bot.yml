@@ -23,7 +23,7 @@ jobs:
                     repo: context.repo.repo,
                     pull_number: prNumber
                 });
-                return { prNumber: prNumber, headRef: pr.head.ref, cloneUrl: pr.head.repo.clone_url };
+                core.setOutput("headRef", pr.head.ref);
 
       - name: Check out PR branch
         uses: actions/checkout@v3
@@ -31,6 +31,9 @@ jobs:
           repository: ${{ github.repository }}
           ref: ${{ steps.pr_info.outputs.headRef }}
       
+      - name: Debug
+        run: echo "Full results ${{ steps.pr_info.outputs.headRef }}"
+
       - name: Set up Python
         uses: actions/setup-python@v4
 

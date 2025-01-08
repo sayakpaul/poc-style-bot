@@ -60,33 +60,40 @@ jobs:
       - name: Run make style and make quality
         run: |
           make style && make quality
+      # - name: Commit and push changes
+      #   id: commit_and_push
+      #   run: |
+      #     # Configure git with the Actions bot user
+      #     git config user.name "github-actions[bot]"
+      #     git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Commit and push changes
+      #     # Make sure your 'origin' remote is set to the contributor's fork
+      #     git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ steps.pr_info.outputs.headRepoFullName }}.git"
+
+      #     # If there are changes after running style/quality, commit them
+      #     if [ -n "$(git status --porcelain)" ]; then
+      #       git add .
+      #       git commit -m "Apply style fixes"
+      #       # Push to the original contributor's forked branch
+      #       git push origin HEAD:${{ steps.pr_info.outputs.headRef }}
+      #       echo "changes_pushed=true" >> $GITHUB_OUTPUT
+      #     else
+      #       echo "No changes to commit."
+      #       echo "changes_pushed=false" >> $GITHUB_OUTPUT
+      #     fi
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit & Push changes
         id: commit_and_push
-        run: |
-          # Configure git with the Actions bot user
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Make sure your 'origin' remote is set to the contributor's fork
-          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ steps.pr_info.outputs.headRepoFullName }}.git"
-
-          # If there are changes after running style/quality, commit them
-          if [ -n "$(git status --porcelain)" ]; then
-            git add .
-            git commit -m "Apply style fixes"
-            # Push to the original contributor's forked branch
-            git push origin HEAD:${{ steps.pr_info.outputs.headRef }}
-            echo "changes_pushed=true" >> $GITHUB_OUTPUT
-          else
-            echo "No changes to commit."
-            echo "changes_pushed=false" >> $GITHUB_OUTPUT
-          fi
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: actions-js/push@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          message: "Apply style fixes"
+          force: true
 
       - name: Comment on PR with workflow run link
-        if: steps.commit_and_push.outputs.changes_pushed == 'true'
+        # if: steps.commit_and_push.outputs.changes_pushed == 'true'
         uses: actions/github-script@v6
         with:
           script: |

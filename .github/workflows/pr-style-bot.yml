@@ -41,8 +41,8 @@ jobs:
           HEADREF: ${{ steps.pr_info.outputs.headRef }}
         with:
           # Instead of checking out the base repo, use the contributor's repo name
-          repository: $HEADREPOFULLNAME
-          ref: $HEADREF
+          repository: ${{ env.HEADREPOFULLNAME }}
+          ref: ${{ env.HEADREF }}
           # You may need fetch-depth: 0 for being able to push
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -53,9 +53,9 @@ jobs:
           HEADREF: ${{ steps.pr_info.outputs.headRef }}
           PRNUMBER: ${{ steps.pr_info.outputs.prNumber }}
         run: |
-          echo "PR number: $PRNUMBER"
-          echo "Head Ref: $HEADREF"
-          echo "Head Repo Full Name: $HEADREPOFULLNAME"
+          echo "PR number: ${{ env.PRNUMBER }}"
+          echo "Head Ref: ${{ env.HEADREF }}"
+          echo "Head Repo Full Name: ${{ env.HEADREPOFULLNAME }}"
 
       - name: Set up Python
         uses: actions/setup-python@v4

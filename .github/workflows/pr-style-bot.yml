@@ -64,9 +64,9 @@ jobs:
         run: |
           pip install .[quality]
 
-          - name: Download Makefile from main branch
-          run: |
-            curl -o main_Makefile https://raw.githubusercontent.com/huggingface/diffusers/main/Makefile
+      - name: Download Makefile from main branch
+        run: |
+          curl -o main_Makefile https://raw.githubusercontent.com/huggingface/diffusers/main/Makefile
         
       - name: Compare Makefiles
         run: |

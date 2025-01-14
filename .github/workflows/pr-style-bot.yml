@@ -36,19 +36,26 @@ jobs:
 
       - name: Check out PR branch
         uses: actions/checkout@v3
+        env: 
+          HEADREPOFULLNAME: ${{ steps.pr_info.outputs.headRepoFullName }}
+          HEADREF: ${{ steps.pr_info.outputs.headRef }}
         with:
           # Instead of checking out the base repo, use the contributor's repo name
-          repository: ${{ steps.pr_info.outputs.headRepoFullName }}
-          ref: ${{ steps.pr_info.outputs.headRef }}
+          repository: $HEADREPOFULLNAME
+          ref: $HEADREF
           # You may need fetch-depth: 0 for being able to push
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Debug
+        env: 
+          HEADREPOFULLNAME: ${{ steps.pr_info.outputs.headRepoFullName }}
+          HEADREF: ${{ steps.pr_info.outputs.headRef }}
+          PRNUMBER: ${{ steps.pr_info.outputs.prNumber }}
         run: |
-          echo "PR Number: ${{ steps.pr_info.outputs.prNumber }}"
-          echo "Head Ref: ${{ steps.pr_info.outputs.headRef }}"
-          echo "Head Repo Full Name: ${{ steps.pr_info.outputs.headRepoFullName }}"
+          echo "PR number: $PRNUMBER"
+          echo "Head Ref: $HEADREF"
+          echo "Head Repo Full Name: $HEADREPOFULLNAME"
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -57,43 +64,51 @@ jobs:
         run: |
           pip install .[quality]
 
+          - name: Download Makefile from main branch
+          run: |
+            curl -o main_Makefile https://raw.githubusercontent.com/huggingface/diffusers/main/Makefile
+        
+      - name: Compare Makefiles
+        run: |
+          if ! diff -q main_Makefile Makefile; then
+            echo "Error: The Makefile has changed. Please ensure it matches the main branch."
+            exit 1
+          fi
+          echo "No changes in Makefile. Proceeding..."
+
       - name: Run make style and make quality
         run: |
           make style && make quality
-      # - name: Commit and push changes
-      #   id: commit_and_push
-      #   run: |
-      #     # Configure git with the Actions bot user
-      #     git config user.name "github-actions[bot]"
-      #     git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      #     # Make sure your 'origin' remote is set to the contributor's fork
-      #     git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ steps.pr_info.outputs.headRepoFullName }}.git"
-
-      #     # If there are changes after running style/quality, commit them
-      #     if [ -n "$(git status --porcelain)" ]; then
-      #       git add .
-      #       git commit -m "Apply style fixes"
-      #       # Push to the original contributor's forked branch
-      #       git push origin HEAD:${{ steps.pr_info.outputs.headRef }}
-      #       echo "changes_pushed=true" >> $GITHUB_OUTPUT
-      #     else
-      #       echo "No changes to commit."
-      #       echo "changes_pushed=false" >> $GITHUB_OUTPUT
-      #     fi
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Commit & Push changes
+      - name: Commit and push changes
         id: commit_and_push
-        uses: actions-js/push@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          message: "Apply style fixes"
-          force: true
+        env: 
+          HEADREPOFULLNAME: ${{ steps.pr_info.outputs.headRepoFullName }}
+          HEADREF: ${{ steps.pr_info.outputs.headRef }}
+          PRNUMBER: ${{ steps.pr_info.outputs.prNumber }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Configure git with the Actions bot user
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Make sure your 'origin' remote is set to the contributor's fork
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${{ steps.commit_and_push.env.HEADREPOFULLNAME }}.git"
+
+          # If there are changes after running style/quality, commit them
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Apply style fixes"
+            # Push to the original contributor's forked branch
+            git push origin HEAD:${{ steps.commit_and_push.env.HEADREF }}
+            echo "changes_pushed=true" >> $GITHUB_OUTPUT
+          else
+            echo "No changes to commit."
+            echo "changes_pushed=false" >> $GITHUB_OUTPUT
+          fi
 
       - name: Comment on PR with workflow run link
-        # if: steps.commit_and_push.outputs.changes_pushed == 'true'
+        if: steps.commit_and_push.outputs.changes_pushed == 'true'
         uses: actions/github-script@v6
         with:
           script: |

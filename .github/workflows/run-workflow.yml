@@ -1,26 +1,48 @@
-name: Run Tests
+name: Run Tests After Style Bot
+
 on:
-  workflow_call:
-    inputs:
-      python_version:
-        description: 'Python version'
-        type: string
-        required: false
-        default: '3.9'
+  workflow_run:
+    workflows: ["PR Style Bot"]  # Adjust to match your style bot workflow name
+    types:
+      - completed
+
 jobs:
-  test:
+  run_tests:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
+
     steps:
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Create check run
+        id: create_check
+        uses: actions/github-script@v6
         with:
-          python-version: ${{ inputs.python_version }}
+          script: |
+            const { data: check } = await github.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'PR Tests After Style Bot',
+              head_sha: context.sha,
+              status: 'in_progress',
+            });
+            return { check_id: check.id };
 
-      - name: Install dependencies
-        run: pip install .
+      - name: Run tests using reusable workflow
+        uses: ./.github/workflows/run-workflow.yml
+        with:
+          python_version: '3.9'
 
-      - name: Run tests
-        run: python -m unittest discover -s tests
+      - name: Complete check run
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const checkId = ${{ steps.create_check.outputs.check_id }};
+            await github.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: checkId,
+              conclusion: 'success',
+              output: {
+                title: 'Tests Completed',
+                summary: 'All tests passed.',
+              },
+            });

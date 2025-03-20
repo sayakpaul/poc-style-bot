@@ -16,6 +16,7 @@ jobs:
         id: create_check
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { data: check } = await github.checks.create({
               owner: context.repo.owner,
@@ -34,6 +35,7 @@ jobs:
       - name: Complete check run
         uses: actions/github-script@v6
         with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const checkId = ${{ steps.create_check.outputs.check_id }};
             await github.checks.update({

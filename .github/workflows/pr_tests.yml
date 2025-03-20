@@ -3,38 +3,9 @@ name: Test on PR
 on:
   pull_request:
     branches: [ main ]
-  issue_comment:
-    types: [created]
-
-permissions: 
-  contents: write   # Allows GITHUB_TOKEN to push changes
 
 jobs:
-  test:
-    if: >
-      github.event_name == 'pull_request'
-      || (
-         github.event_name == 'issue_comment'
-         )
-    runs-on: ubuntu-latest
-    
-    steps:
-      - name: Print comment user login
-        run: |
-          echo "${{ toJson(github.event) }}"
-          echo "Comment user login: ${{ github.event.comment.user.login }}"
-      - name: Check out code
-        uses: actions/checkout@v3
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.9'
-
-      - name: Install dependencies
-        run: |
-          pip install .
-
-      - name: Run tests
-        run: |
-          python -m unittest discover -s tests
+  call-run-tests:
+    uses: ./.github/workflows/run-workflow.yml
+    with:
+      python_version: '3.9'

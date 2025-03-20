@@ -22,7 +22,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const { data: check } = await github.checks.create({
+            const { data: check } = await github.rest.checks.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
               name: 'PR Tests After Style Bot',
@@ -30,19 +30,19 @@ jobs:
               status: 'in_progress',
             });
             return { check_id: check.id };
-
+      
       - name: Run tests using reusable workflow
         uses: ./.github/workflows/run-workflow.yml
         with:
           python_version: '3.9'
-
+      
       - name: Complete check run
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const checkId = ${{ steps.create_check.outputs.check_id }};
-            await github.checks.update({
+            await github.rest.checks.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
               check_run_id: checkId,

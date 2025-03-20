@@ -1,0 +1,26 @@
+name: Run Tests
+on:
+  workflow_call:
+    inputs:
+      python_version:
+        description: 'Python version'
+        type: string
+        required: false
+        default: '3.9'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ inputs.python_version }}
+
+      - name: Install dependencies
+        run: pip install .
+
+      - name: Run tests
+        run: python -m unittest discover -s tests

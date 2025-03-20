@@ -1,0 +1,14 @@
+name: Run Tests After Style Bot
+
+on:
+  workflow_run:
+    workflows: ["PR Style Bot"]  # Adjust to your style bot workflow name
+    types:
+      - completed
+
+jobs:
+  call-run-tests:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    uses: ./.github/workflows/run-workflow.yml
+    with:
+      python_version: '3.9'

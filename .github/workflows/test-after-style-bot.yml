@@ -32,7 +32,7 @@ jobs:
             return { check_id: check.id };
       
       - name: Run tests using reusable workflow
-        uses: ./.github/workflows/run-workflow.yml
+        uses: ./.github/workflows/run-workflow.yml@main
         with:
           python_version: '3.9'
       

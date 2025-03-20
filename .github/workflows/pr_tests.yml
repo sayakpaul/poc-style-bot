@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Echo stuff
+      - name: Print comment user login
         run: |
           echo "${{ toJson(github.event) }}"
           echo "Comment user login: ${{ github.event.comment.user.login }}"
